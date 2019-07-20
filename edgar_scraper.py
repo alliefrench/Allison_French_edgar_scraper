@@ -5,38 +5,40 @@ import csv
 
 def get_fund_holdings(cik):
 
+    # Make a request with desired CIK returning 13F reports
     req_url = 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=%s&type=13F-HR&dateb=&owner=exclude&count=80' % (
         cik)
     r = requests.get(req_url)
     soup = BeautifulSoup(r.text, "xml")
-    # header = soup.find(class_='tableFile2').find_all(
-    #     'tr', parent='table', recursive='False')
-    test = soup.table.tr.get_text()
 
-    test_list = test.split('\n')
-    clean_list = []
-    for el in test_list:
-        if len(el) > 0:
-            clean_list.append(el)
+    # Isolate report links
+    links = soup.find(class_='tableFile2').find_all(
+        id='documentsbutton', recursive='False')
 
-    print(clean_list)
+    # Make a request for the first (most recent) report link
+    s = requests.get('https://www.sec.gov' + links[0]['href'])
+    s_soup = BeautifulSoup(s.text, "xml")
+
+    # Isolate the xml information table link
+    xml_link = s_soup.select('a[href*=informationtable]')[0]['href']
+
+    # Request the xml information table data
+    t = requests.get('https://www.sec.gov' + xml_link)
+    t_soup = BeautifulSoup(t.text, "xml")
+
+    first_row = t_soup.body.tbody.tr
+    header = first_row.find_next_sibling()
+    header_cells = header.find_all('td')
 
     with open("/Users/allisonfrench/Python/Plaid/fund_holdings.tsv", 'w') as tsv_doc:
         tsv_writer = csv.writer(tsv_doc, delimiter='\t')
+        clean = []
+        for cell in header_cells:
+            clean.append(cell.text)
 
-        # for row in table:
-        #     header_row = []
-        #     cells = row.find_all('th')
-        #     for cell in cells:
-        #         header_row.append(cell.text)
-        #     tsv_writer.writerow(header_row)
+        tsv_writer.writerow(clean)
 
-        # for row in table[1]:
-        #     data_row = []
-        #     cells = row.find_all('tr')
-        #     for cell in cells:
-        #         data_row.append(cell.text)
-        #     tsv_writer.writerow(data_row)
+        return []
 
 
 def main():
