@@ -5,7 +5,7 @@ import csv
 
 def get_fund_holdings(cik):
 
-    # Make a request with desired CIK returning 13F reports
+    # Make a request with desired CIK number, returning all 13F reports
     req_url = 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=%s&type=13F-HR&dateb=&owner=exclude&count=80' % (
         cik)
     r = requests.get(req_url)
@@ -20,30 +20,31 @@ def get_fund_holdings(cik):
     s_soup = BeautifulSoup(s.text, "xml")
 
     # Isolate the xml information table link
-    xml_link = s_soup.select('a[href*=informationtable]')[0]['href']
+    xml_link = s_soup.select('a[href*=xslForm13F]')[1]['href']
 
     # Request the xml information table data
     t = requests.get('https://www.sec.gov' + xml_link)
     t_soup = BeautifulSoup(t.text, "xml")
 
     first_row = t_soup.body.tbody.tr
-    header = first_row.find_next_sibling()
-    header_cells = header.find_all('td')
+    write_doc(first_row)
 
+
+def write_doc(soup_obj):
     with open("/Users/allisonfrench/Python/Plaid/fund_holdings.tsv", 'w') as tsv_doc:
         tsv_writer = csv.writer(tsv_doc, delimiter='\t')
-        clean = []
-        for cell in header_cells:
-            clean.append(cell.text)
-
-        tsv_writer.writerow(clean)
-
-        return []
+        row = soup_obj.find_next_sibling()
+        while row:
+            inner_text = []
+            row_cells = row.find_all('td')
+            for cell in row_cells:
+                inner_text.append(cell.text)
+            tsv_writer.writerow(inner_text)
+            row = row.find_next_sibling()
 
 
 def main():
-    fund_holdings = get_fund_holdings('0001166559')
-    print(fund_holdings)
+    get_fund_holdings('0001756111')
 
 
 if __name__ == "__main__":
