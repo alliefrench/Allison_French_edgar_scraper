@@ -32,7 +32,7 @@ def get_fund_holdings(cik):
 
 
 def write_doc(soup_obj):
-    with open("/Users/allisonfrench/Python/Plaid/fund_holdings.tsv", 'w') as tsv_doc:
+    with open("fund_holdings.tsv", 'w') as tsv_doc:
         tsv_writer = csv.writer(tsv_doc, delimiter='\t')
         row = soup_obj.find_next_sibling()
         while row:
