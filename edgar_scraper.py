@@ -27,14 +27,25 @@ def get_fund_holdings(cik):
     t = requests.get('https://www.sec.gov' + xml_link)
     t_soup = BeautifulSoup(t.text, "xml")
 
+    # Isolate first row of the table
     first_row = t_soup.body.tbody.tr
+
+    # Generate report
     write_doc(first_row)
 
 
 def write_doc(soup_obj):
+
+    # Create the tsv file in our program directory
     with open("fund_holdings.tsv", 'w') as tsv_doc:
         tsv_writer = csv.writer(tsv_doc, delimiter='\t')
+
+        # Grab header row of table
         row = soup_obj.find_next_sibling()
+
+        # While there are further rows, we grab the td elements and put
+        # the inner text into a new list. The list representing the row text
+        # is then written to the .tsv
         while row:
             inner_text = []
             row_cells = row.find_all('td')
@@ -44,6 +55,7 @@ def write_doc(soup_obj):
             row = row.find_next_sibling()
 
 
+# sys.argv allows us to run the CIK argument in the command line
 def main(argv):
     get_fund_holdings(argv)
 
