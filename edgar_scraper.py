@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
+import sys
 
 
 def get_fund_holdings(cik):
@@ -43,9 +44,9 @@ def write_doc(soup_obj):
             row = row.find_next_sibling()
 
 
-def main():
-    get_fund_holdings('0001756111')
+def main(argv):
+    get_fund_holdings(argv)
 
 
 if __name__ == "__main__":
-    main()
+    main(*sys.argv[1:])
