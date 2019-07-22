@@ -12,11 +12,13 @@ def get_fund_holdings(cik):
     r = requests.get(req_url)
     soup = BeautifulSoup(r.text, "xml")
 
-    # Isolate report links
+    # Isolate 13F report links
     links = soup.find(class_='tableFile2').find_all(
         id='documentsbutton', recursive='False')
 
     # Make a request for the first (most recent) report link
+    # A build out would be to offer a second argument where the user could
+    # Request a number representing a previous report
     s = requests.get('https://www.sec.gov' + links[0]['href'])
     s_soup = BeautifulSoup(s.text, "xml")
 
